@@ -21,21 +21,53 @@ const addBook = async (req, res) => {
     console.log(bookObj);
 
     if (!title || !author || !price) {
-        return res.status(502).send("Enough info not provided");
+        return res.status(400).send("Enough info not provided");
     }
 
     try {
         const newBook = await book.create(bookObj);
-        res.status(202).json(newBook);
+        res.status(201).json(newBook);
     } catch (e) {
         res.status(500).send("cant save book");
         console.log(e);
     }
 };
 
-const editBook = async (req, res) => {};
+const editBook = async (req, res) => {
+    const { id } = req.params;
+    console.log("params", req.params.id);
 
-const deleteBook = async (req, res) => {};
+    const { title, author, publishedDate, price } = req.body;
+    if (!id) return res.status(400).send("No book id provided");
+
+    try {
+        const newBook = { title, author, publishedDate, price };
+        const editedBook = await book.findByIdAndUpdate(id, newBook, {
+            new: true,
+        });
+
+        if (editedBook) {
+            return res.status(200).json(editedBook);
+        } else {
+            return res.status(404).send("No book was found");
+        }
+    } catch (e) {
+        console.log(e);
+        return res.status(500).send("error occured");
+    }
+};
+
+const deleteBook = async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        await book.findByIdAndDelete(id);
+        return res.status(200).send("deleted");
+    } catch (e) {
+        console.log(e);
+        return res.status(500).send("Some error occured");
+    }
+};
 
 module.exports = {
     getBooks,
